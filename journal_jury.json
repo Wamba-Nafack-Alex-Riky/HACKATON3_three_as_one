@@ -1,0 +1,183 @@
+{
+  "meta": {
+    "projet": "HackVerse IDS — Le système qui se défend seul",
+    "equipe": "Iness · Alex · Henri",
+    "hackathon": "HackVerse",
+    "export_ts": "2026-04-25T23:23:47.813831+00:00",
+    "journal": "journal.jsonl"
+  },
+  "resume": {
+    "total_evenements": 5,
+    "par_decision": {
+      "BLOCK": 2,
+      "ALERT": 1,
+      "MONITOR": 1,
+      "SLOWDOWN": 1
+    },
+    "par_source": {
+      "ssh": 3,
+      "apache": 1,
+      "network": 1
+    },
+    "top_ips_suspectes": [
+      {
+        "ip": "185.147.82.139",
+        "count": 1
+      },
+      {
+        "ip": "185.1.1.1",
+        "count": 1
+      },
+      {
+        "ip": "10.0.0.50",
+        "count": 1
+      },
+      {
+        "ip": "93.2.3.4",
+        "count": 1
+      },
+      {
+        "ip": "185.4.5.6",
+        "count": 1
+      }
+    ],
+    "logs_integrite_echec": 0,
+    "evenements_degrade": 0,
+    "periode_debut": "2026-04-25T23:23:47.811890+00:00",
+    "periode_fin": "2026-04-25T23:23:47.812585+00:00"
+  },
+  "format_exemple": {
+    "journal_ts": "2026-04-25T03:21:14Z",
+    "timestamp_recv": "2026-04-25T03:21:14Z",
+    "timestamp_log": "2026-04-25T03:21:10Z",
+    "source": "ssh",
+    "ip": "185.147.82.139",
+    "user": "root",
+    "event": "Failed password",
+    "prediction": "attack",
+    "detector": "ssh_rules",
+    "rule_triggered": "window_10s",
+    "detector_score": 95.0,
+    "behavioral_score": 80.0,
+    "win_10s": 15,
+    "win_1h": 42,
+    "win_24h": 120,
+    "integrity_ok": true,
+    "late_seconds": 4.0,
+    "risk_score": 90.5,
+    "fp_cost_score": 6.0,
+    "decision_score": 87.5,
+    "confidence_penalty": 0.0,
+    "confidence_multiplier": 1.0,
+    "response_level": 4,
+    "response_label": "BLOCK",
+    "decision": "BLOCK",
+    "justification": "Decision score 87.5 ≥ threshold 75. Risk=90.5, FP-cost=6.0. Automatic block applied.",
+    "evidence": [
+      "External IP (non-internal network)",
+      "SSH rule: window_10s — 15 Failed password en 10s",
+      "High behavioral score: 80 (10s=15, 1h=42, 24h=120)"
+    ],
+    "whitelisted": false,
+    "firewall_action": "blocked",
+    "mode_degrade": false,
+    "is_duplicate": false
+  },
+  "entrees": [
+    {
+      "ip": "185.147.82.139",
+      "source": "ssh",
+      "score_risque": 90.5,
+      "score_confiance": 100.0,
+      "score_cout_faux_positif": 6.0,
+      "decision": "BLOCK",
+      "niveau_reponse": 4,
+      "preuves": [
+        "External IP (non-internal network)",
+        "SSH rule: window_10s — 15 Failed password en 10s",
+        "High behavioral score: 80 (10s=15, 1h=42, 24h=120)"
+      ],
+      "whitelist": false,
+      "integrite_log": "verified",
+      "mode_degrade": false,
+      "timestamp": "2026-04-25T23:23:47.811890+00:00",
+      "justification": "Decision score 87.5 ≥ threshold 75. Risk=90.5, FP-cost=6.0. Automatic block applied."
+    },
+    {
+      "ip": "185.1.1.1",
+      "source": "ssh",
+      "score_risque": 55.0,
+      "score_confiance": 100.0,
+      "score_cout_faux_positif": 6.0,
+      "decision": "ALERT",
+      "niveau_reponse": 2,
+      "preuves": [
+        "External IP (non-internal network)",
+        "SSH rule: window_10s — 15 Failed password en 10s",
+        "High behavioral score: 80 (10s=15, 1h=42, 24h=120)"
+      ],
+      "whitelist": false,
+      "integrite_log": "verified",
+      "mode_degrade": false,
+      "timestamp": "2026-04-25T23:23:47.812169+00:00",
+      "justification": "Decision score 87.5 ≥ threshold 75. Risk=90.5, FP-cost=6.0. Automatic block applied."
+    },
+    {
+      "ip": "10.0.0.50",
+      "source": "ssh",
+      "score_risque": 12.0,
+      "score_confiance": 100.0,
+      "score_cout_faux_positif": 6.0,
+      "decision": "MONITOR",
+      "niveau_reponse": 1,
+      "preuves": [
+        "External IP (non-internal network)",
+        "SSH rule: window_10s — 15 Failed password en 10s",
+        "High behavioral score: 80 (10s=15, 1h=42, 24h=120)"
+      ],
+      "whitelist": true,
+      "integrite_log": "verified",
+      "mode_degrade": false,
+      "timestamp": "2026-04-25T23:23:47.812320+00:00",
+      "justification": "Decision score 87.5 ≥ threshold 75. Risk=90.5, FP-cost=6.0. Automatic block applied."
+    },
+    {
+      "ip": "93.2.3.4",
+      "source": "apache",
+      "score_risque": 70.0,
+      "score_confiance": 100.0,
+      "score_cout_faux_positif": 6.0,
+      "decision": "SLOWDOWN",
+      "niveau_reponse": 3,
+      "preuves": [
+        "External IP (non-internal network)",
+        "SSH rule: window_10s — 15 Failed password en 10s",
+        "High behavioral score: 80 (10s=15, 1h=42, 24h=120)"
+      ],
+      "whitelist": false,
+      "integrite_log": "verified",
+      "mode_degrade": false,
+      "timestamp": "2026-04-25T23:23:47.812459+00:00",
+      "justification": "Decision score 87.5 ≥ threshold 75. Risk=90.5, FP-cost=6.0. Automatic block applied."
+    },
+    {
+      "ip": "185.4.5.6",
+      "source": "network",
+      "score_risque": 92.0,
+      "score_confiance": 100.0,
+      "score_cout_faux_positif": 6.0,
+      "decision": "BLOCK",
+      "niveau_reponse": 4,
+      "preuves": [
+        "External IP (non-internal network)",
+        "SSH rule: window_10s — 15 Failed password en 10s",
+        "High behavioral score: 80 (10s=15, 1h=42, 24h=120)"
+      ],
+      "whitelist": false,
+      "integrite_log": "verified",
+      "mode_degrade": false,
+      "timestamp": "2026-04-25T23:23:47.812585+00:00",
+      "justification": "Decision score 87.5 ≥ threshold 75. Risk=90.5, FP-cost=6.0. Automatic block applied."
+    }
+  ]
+}
