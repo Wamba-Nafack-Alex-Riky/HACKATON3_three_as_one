@@ -1,15 +1,10 @@
-# IPs that must NEVER be blocked automatically
-# Add admin IPs, partner IPs, internal services here
-
 internal_ranges:
-  - "10.0.0.0/8"
-
+- 10.0.0.0/8
 trusted_ips:
-  - "10.0.0.11"   # backup server
-  - "10.0.0.12"   # deploy server
-
-# Known legitimate admin users (SSH)
+- 10.0.0.11
+- 10.0.0.12
+- 192.168.99.99
 trusted_users:
-  - "admin"
-  - "deploy"
-  - "backup"
+- admin
+- deploy
+- backup

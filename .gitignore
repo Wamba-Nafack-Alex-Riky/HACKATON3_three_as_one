@@ -1,0 +1,59 @@
+# ============================================================
+# HackVerse IDS — .gitignore
+# ============================================================
+
+# --- Environnement virtuel ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# --- Distribution / packaging ---
+dist/
+build/
+*.egg-info/
+*.egg
+
+# --- Tests & couverture ---
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+
+# --- Modèles ML générés (lourds, re-générables) ---
+# ⚠️  Décommenter si vous ne voulez PAS versionner les .pkl
+# src/models/*.pkl
+
+# --- Journal de décisions (runtime) ---
+journal.jsonl
+*.jsonl
+
+# --- Fichiers temporaires ---
+*.tmp
+*.log
+*.bak
+*.swp
+*~
+
+# --- IDE ---
+.vscode/
+.idea/
+*.iml
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Variables d'environnement ---
+.env
+.env.local
+.env.*.local
