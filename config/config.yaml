@@ -1,1 +1,36 @@
+data:
+  apache_log: data/sample_logs/apache_access_1.csv
+  ssh_log: data/sample_logs/auth_ssh_1.csv
+  network_log: data/sample_logs/network_flows_1.csv
 
+models:
+  http_model: src/models/http_model.pkl
+  network_model: src/models/network_model.pkl
+
+ssh_thresholds:
+  window_10s: 3        # Failed attempts in 10 seconds → ALERT
+  window_1h: 15        # Failed attempts in 1 hour → BLOCK TEMP
+  window_24h: 40       # Failed attempts in 24 hours → BLOCK LONG
+  block_temp_minutes: 60
+  block_long_minutes: 1440
+
+scoring:
+  block_threshold: 75     # score >= 75 → BLOCK
+  alert_threshold: 50     # score >= 50 → ALERT
+  slowdown_threshold: 65  # score >= 65 → RATE LIMIT
+
+response_levels:
+  1: MONITOR
+  2: ALERT
+  3: SLOWDOWN
+  4: BLOCK
+
+api:
+  host: 0.0.0.0
+  port: 5000
+  debug: false
+
+degraded:
+  log_silence_seconds: 30     # No logs for 30s = suspicious silence
+  late_log_threshold_seconds: 60  # Log older than 60s = reduced confidence
+  confidence_penalty_late: 0.3    # Reduce confidence by 30% for late logs
