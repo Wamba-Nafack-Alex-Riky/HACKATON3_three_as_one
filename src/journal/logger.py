@@ -1,5 +1,5 @@
 """
-journal/logger.py  —  HackVerse IDS
+journal/logger.py  —  ThreeSentinel
 ====================================
 Écrit chaque décision du pipeline dans un journal structuré (JSONL).
 Chaque ligne est un objet JSON valide et autonome, lisible directement
@@ -99,17 +99,31 @@ def _filter(record: dict) -> dict:
 
 # ── Écriture ──────────────────────────────────────────────────────────────────
 
+# ── État global Twist 9 ────────────────────────────────────────────────────────
+_CHAIN_COMPROMISED = False
+
 def write(record: dict) -> bool:
     """
     Ajoute une entrée de décision au journal.
-
-    Args:
-        record: dict enrichi par le pipeline (scorer → decision → firewall)
-
-    Returns:
-        True si l'écriture a réussi, False sinon.
+    TWIST 9: Proving integrity of the chain of evidence.
+    A local failure in integrity (tampering) contaminates the global trust.
     """
+    global _CHAIN_COMPROMISED
+    
+    # Si le log actuel est corrompu, on empoisonne la chaîne pour toujours
+    if record.get("integrity_ok") is False:
+        if not _CHAIN_COMPROMISED:
+            log.critical("⚠️ TWIST 9: EVIDENCE CHAIN BROKEN! Local tampering detected. Global trust contaminated.")
+        _CHAIN_COMPROMISED = True
+
     entry = _filter(record)
+    
+    # Application de la contamination Twist 9
+    if _CHAIN_COMPROMISED:
+        entry["legal_status"] = "COMPROMISED"
+        entry["confidence_multiplier"] = 0.1 # Destruction de la valeur de preuve
+        entry["evidence"] = entry.get("evidence", []) + ["⚠️ TWIST 9: Chain of evidence integrity failure"]
+
     try:
         with open(JOURNAL_PATH, "a", encoding="utf-8") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
@@ -299,7 +313,7 @@ def export_jury(
 
     output = {
         "meta": {
-            "projet":    "HackVerse IDS — Le système qui se défend seul",
+            "projet":    "ThreeSentinel — Le système qui se défend seul",
             "equipe":    "Iness · Alex · Henri",
             "hackathon": "HackVerse",
             "export_ts": datetime.now(timezone.utc).isoformat(),
