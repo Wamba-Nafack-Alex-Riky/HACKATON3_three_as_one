@@ -8,6 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import LabelEncoder
+from imblearn.over_sampling import SMOTE
 
 # Allow running from project root
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -67,15 +68,28 @@ def train():
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
+    print("[HTTP] Applying SMOTE for synthetic minority over-sampling …")
+    # Twist 3: Balancing the dataset with SMOTE
+    # k_neighbors=2 since we have very few 'attack' samples (around 4 in train)
+    smote = SMOTE(random_state=42, k_neighbors=2)
+    X_train_res, y_train_res = smote.fit_resample(X_train, y_train)
+    print(f"[HTTP] Resampled dataset shape: {len(X_train_res)} records.")
+
+    print("[HTTP] Training Random Forest with Twist 3 constraints …")
+    # Twist 3: False positives cost more.
+    # We heavily penalize false positives by assigning a high weight to legit class
+    # even though the dataset is now balanced through SMOTE.
+    # legit(0): 10, scan(1): 1, attack(2): 1
+    custom_weights = {0: 10, 1: 1, 2: 1}
+
     clf = RandomForestClassifier(
         n_estimators=100,
         max_depth=10,
-        class_weight="balanced",   # handles class imbalance (few attacks)
+        class_weight=custom_weights,
         random_state=42,
         n_jobs=-1,
     )
-    print("[HTTP] Training Random Forest …")
-    clf.fit(X_train, y_train)
+    clf.fit(X_train_res, y_train_res)
 
     y_pred = clf.predict(X_test)
     print("\n[HTTP] Classification report:")
