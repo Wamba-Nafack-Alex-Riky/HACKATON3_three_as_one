@@ -70,7 +70,7 @@ qui s'applique dès l'entrée du pipeline :
 Le mode dégradé et le score de confiance que nous avions 
 prévus initialement restent pertinents, mais ils sont 
 désormais alimentés par cette vérification d'intégrité 
-à la source.
+à la source..
 
 ---
 
