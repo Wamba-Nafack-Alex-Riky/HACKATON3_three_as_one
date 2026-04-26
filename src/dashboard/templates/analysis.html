@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Analyse — ThreeSentinel</title>
+  <meta name="description" content="Système de détection et réponse automatique aux intrusions — ThreeSentinel"/>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <script src="/static/api_client.js"></script>
+</head>
+<body>
+
+<header>
+  <a href="/" class="logo">
+    <div class="logo-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+    </div>
+    ThreeSentinel
+  </a>
+  <nav class="nav-links">
+    <a href="/dashboard" class="nav-link">Surveillance</a>
+    <a href="/firewall" class="nav-link">Intervention</a>
+    <a href="/analysis" class="nav-link active">Analyse</a>
+  </nav>
+  <div class="status-badge">
+    <span class="pulse"></span>
+    Système actif
+  </div>
+  <div style="display:flex; align-items:center; gap:20px;">
+    <div class="header-time" id="clock">--:--:--</div>
+    <a href="/help" class="help-btn" title="Aide">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+    </a>
+  </div>
+</header>
+
+<main style="max-width: 1200px; margin: 0 auto;">
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+
+    <!-- Top IPs -->
+    <div>
+      <div class="section-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+        Top 10 IPs les plus suspectes
+      </div>
+      <div class="card" style="min-height: 400px;">
+        <div class="top-ip-list" id="top-ips">
+          <div style="color:var(--muted);font-size:.82rem">Chargement…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Distribution -->
+    <div>
+      <div class="section-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        Répartition Globale des Décisions
+      </div>
+      <div class="card" id="dist-card" style="min-height: 400px; display: flex; flex-direction: column; justify-content: center;">
+        <div style="color:var(--muted);font-size:.82rem">Chargement…</div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+async function refreshStats() {
+  const d = await apiCall('/api/stats');
+  if (!d) return;
+
+  const topEl = document.getElementById('top-ips');
+  const ips = d.top_ips || [];
+  const max = ips[0]?.count || 1;
+  if (ips.length === 0) {
+    topEl.innerHTML = '<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:20px;">Aucune donnée</div>';
+  } else {
+    topEl.innerHTML = ips.map(row => `
+      <div class="top-ip-row" style="margin-bottom: 12px;">
+        <span class="ip-label" style="font-size: 1rem; min-width: 150px;">${row.ip}</span>
+        <div class="ip-bar-wrap" style="height: 8px;"><div class="ip-bar" style="width:${Math.round(row.count/max*100)}%"></div></div>
+        <span class="ip-count" style="font-size: 1rem; font-weight: bold; min-width: 50px;">${row.count}</span>
+      </div>
+    `).join('');
+  }
+
+  const dist = d.by_decision || {};
+  const total = d.total_events || 1;
+  const colors = {BLOCK:'var(--danger)',ALERT:'var(--warn)',SLOWDOWN:'var(--accent)',MONITOR:'var(--monitor)'};
+  const distEl = document.getElementById('dist-card');
+  distEl.innerHTML = `
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div style="font-family: 'Montserrat', sans-serif; font-size: 3rem; font-weight: 500;">${total}</div>
+      <div style="color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Événements analysés</div>
+    </div>
+    ${Object.entries(dist).map(([dec, cnt]) => `
+      <div style="display:flex;align-items:center;gap:15px;margin-bottom:16px;font-size:1rem">
+        ${Format.badge(dec)}
+        <div style="flex:1;background:rgba(255,255,255,.06);border-radius:4px;height:12px;overflow:hidden">
+          <div style="width:${Math.round(cnt/total*100)}%;height:100%;background:${colors[dec]||'#888'};border-radius:4px;transition:width .5s"></div>
+        </div>
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--text);font-weight:bold;min-width:60px;text-align:right;">${cnt}</span>
+        <span style="color:var(--muted);font-size:0.8rem;min-width:40px;">${Math.round(cnt/total*100)}%</span>
+      </div>
+    `).join('')}
+  `;
+}
+
+refreshStats();
+setInterval(refreshStats, 5000);
+</script>
+</body>
+</html>

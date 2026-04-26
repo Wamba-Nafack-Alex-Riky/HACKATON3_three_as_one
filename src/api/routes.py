@@ -1,12 +1,13 @@
 """
 api/routes.py
-Définition des routes REST pour l'API Flask HackVerse-IDS.
+Définition des routes REST pour l'API Flask ThreeSentinel.
 Toutes les routes sont regroupées dans un Blueprint `api_bp`
 et enregistrées dans app.py via app.register_blueprint().
 """
 
 from flask import Blueprint, jsonify, request, abort
 import ipaddress
+from datetime import datetime, timezone
 
 # --- Blueprint -----------------------------------------------------------------
 api_bp = Blueprint("api", __name__, url_prefix="/api")
@@ -18,7 +19,7 @@ def _get_deps():
         get_blocked_list, block_ip, unblock_ip, is_blocked
     )
     from src.scorer.risk_scorer import is_whitelisted
-    from src.degraded.silence_detector import check_all as silence_check_all
+    from src.degraded.silence_detector import get_system_status as silence_check_all
     return {
         "read_all": read_all,
         "read_alerts": read_alerts,
@@ -44,21 +45,21 @@ def status():
         "blocked_ips": 3,
         "active_alerts": 12,
         "suspicious_silence": [],
-        "system": "hackverse-ids v1.0"
+        "system": "threesentinel v1.0"
     }
     """
     d = _get_deps()
     blocked  = d["get_blocked_list"]()
     alerts   = d["read_alerts"](min_level=2)
     silence  = d["silence_check_all"]()
-    susp_sil = [s for s in silence if s.get("status") == "suspicious_silence"]
+    susp_sil = [silence] if silence.get("status") == "suspicious_silence" else []
 
     return jsonify({
         "status":             "running",
         "blocked_ips":        len(blocked),
         "active_alerts":      len(alerts),
         "suspicious_silence": susp_sil,
-        "system":             "hackverse-ids v1.0",
+        "system":             "threesentinel v1.0",
     })
 
 
@@ -140,8 +141,9 @@ def unblock(ip):
     if not ip:
         abort(400, description="IP requise")
     d       = _get_deps()
-    success = d["unblock_ip"](ip)
-    return jsonify({"ip": ip, "unblocked": success})
+    result  = d["unblock_ip"](ip)
+    success = result.get("success", False)
+    return jsonify({"ip": ip, "unblocked": success, "details": result})
 
 
 # ── POST /api/whitelist/<ip> ─────────────────────────────────────────────────
@@ -327,6 +329,40 @@ def stats():
         "by_source":    by_source,
         "top_ips":      top_ips,
     })
+
+
+# ── POST /api/inject ─────────────────────────────────────────────────────────
+@api_bp.route("/inject", methods=["POST"])
+def inject():
+    """
+    Injecte un événement manuellement dans le pipeline (Utile pour la DÉMO).
+    """
+    from flask import current_app
+    process_func = current_app.config.get("PROCESS_EVENT")
+    if not process_func:
+        return jsonify({"success": False, "error": "Pipeline non lié"}), 500
+
+    data = request.json
+    if not data:
+        return jsonify({"success": False, "error": "JSON requis"}), 400
+
+    # Enrichissement minimal pour passer les filtres
+    data.setdefault("timestamp_log", datetime.now(timezone.utc).isoformat())
+    data.setdefault("timestamp_recv", datetime.now(timezone.utc).isoformat())
+    data.setdefault("integrity_ok", True)
+    data.setdefault("source", "ssh")
+
+    try:
+        # Envoyer directement au pipeline de détection
+        result = process_func(data)
+        return jsonify({
+            "success": True,
+            "message": "Événement injecté avec succès",
+            "decision": result.get("decision"),
+            "risk_score": result.get("risk_score")
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 # ── GET /api/whitelist ───────────────────────────────────────────────────────

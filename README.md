@@ -218,7 +218,7 @@ voit du texte dans un terminal. Avec une API Flask légère :
 ## 🗂️ Structure finale du projet
 
 ```
-hackverse-ids/
+threesentinel/
 │
 ├── README.md
 │

@@ -1,6 +1,6 @@
 """
 journal/schema.py
-Schéma officiel d'un enregistrement de journal HackVerse-IDS.
+Schéma officiel d'un enregistrement de journal ThreeSentinel.
 Utilisé pour la validation et la documentation lisible par le jury.
 """
 

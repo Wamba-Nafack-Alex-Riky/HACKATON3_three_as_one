@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aide & Documentation — ThreeSentinel</title>
+  <meta name="description" content="Documentation utilisateur et technique — ThreeSentinel"/>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+
+<header>
+  <a href="/" class="logo">
+    <div class="logo-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+    </div>
+    ThreeSentinel
+  </a>
+  <nav class="nav-links">
+    <a href="/dashboard" class="nav-link">Surveillance</a>
+    <a href="/firewall" class="nav-link">Intervention</a>
+    <a href="/analysis" class="nav-link">Analyse</a>
+  </nav>
+  <div class="status-badge">
+    <span class="pulse"></span>
+    Système actif
+  </div>
+  <div style="display:flex; align-items:center; gap:20px;">
+    <div class="header-time" id="clock">--:--:--</div>
+    <a href="/help" class="help-btn" title="Aide" style="color:var(--text); border-color:var(--accent); background:rgba(108,99,255,0.1)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+    </a>
+  </div>
+</header>
+
+<main style="max-width: 1000px; margin: 0 auto;">
+
+  <div class="section-title">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+    Documentation Utilisateur
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px;">
+    <div class="card">
+      <div class="card-label">Flux de Surveillance</div>
+      <p style="color:var(--muted); font-size:0.95rem; line-height:1.6;">
+        La page <strong>Surveillance</strong> affiche en temps réel les alertes détectées par notre moteur d'IA. 
+        Chaque alerte comporte un score de risque (0-100) et une décision automatique (MONITOR, ALERT, BLOCK).
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-label">Centre d'Intervention</div>
+      <p style="color:var(--muted); font-size:0.95rem; line-height:1.6;">
+        La page <strong>Intervention</strong> vous permet de visualiser les IPs actuellement bloquées par le pare-feu dynamique.
+        Vous pouvez débloquer une IP ou en ajouter une à la liste blanche (Whitelist) manuellement.
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-label">Module d'Analyse</div>
+      <p style="color:var(--muted); font-size:0.95rem; line-height:1.6;">
+        La page <strong>Analyse</strong> fournit des statistiques agrégées sur les attaquants les plus fréquents et la répartition globale des décisions prises par le système.
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-label">Mode Dégradé</div>
+      <p style="color:var(--muted); font-size:0.95rem; line-height:1.6;">
+        Si le flux de logs est interrompu, ThreeSentinel passe en <strong>Mode Dégradé</strong>. 
+        Un indicateur visuel vous avertira d'un possible sabotage des journaux par un attaquant.
+      </p>
+    </div>
+  </div>
+
+  <div class="section-title">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+    Support Technique
+  </div>
+  <div class="card" style="text-align: center; padding: 40px;">
+    <p style="margin-bottom: 20px; font-size: 1.1rem;">Besoin d'une assistance immédiate ?</p>
+    <a href="mailto:support@hackverse.ids" class="btn-outline" style="text-decoration: none;">Contacter l'Équipe HackVerse</a>
+  </div>
+
+</main>
+
+<script>
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('fr-FR');
+}
+setInterval(updateClock, 1000);
+updateClock();
+</script>
+</body>
+</html>

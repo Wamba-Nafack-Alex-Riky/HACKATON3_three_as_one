@@ -1,6 +1,6 @@
 """
 src/journal/__init__.py
-Expose l'API publique du module de journalisation HackVerse IDS.
+Expose l'API publique du module de journalisation ThreeSentinel.
 
 Usage :
     from src.journal import write, read_alerts, export_jury, stats

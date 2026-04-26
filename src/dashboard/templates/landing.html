@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ThreeSentinel — Protection des Données</title>
+  
+  <!-- Polices : Montserrat pour les titres, Inter pour le texte -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/api_client.js"></script>
+  <style>
+    /* Styles spécifiques à la landing page */
+    .hero-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 60px;
+      max-width: 1200px;
+      min-height: calc(100vh - 100px);
+    }
+
+    .hero-main h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 500;
+      font-size: 4.5rem;
+      line-height: 1.1;
+      margin-bottom: 40px;
+      max-width: 900px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 20px;
+    }
+
+    .btn-hero {
+      display: inline-block;
+      text-decoration: none;
+      background-color: transparent;
+      border: 1px solid #FFFFFF;
+      color: #FFFFFF;
+      padding: 16px 32px;
+      text-transform: uppercase;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .btn-hero:hover {
+      background-color: #FFFFFF;
+      color: var(--bg);
+    }
+    
+    .btn-hero.secondary {
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .btn-hero.secondary:hover {
+      border-color: #FFFFFF;
+      color: #FFFFFF;
+      background-color: transparent;
+    }
+
+    @media (max-width: 768px) {
+      .hero-main { padding: 0 30px; }
+      .hero-main h1 { font-size: 3rem; }
+      .actions { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="logo">
+      <div class="logo-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      </div>
+      ThreeSentinel
+    </a>
+  </header>
+
+  <div class="hero-main">
+    <h1>L'ère de la sécurité autonome.</h1>
+    <div class="actions">
+      <a href="/dashboard" class="btn-hero">Accéder au SOC</a>
+      <a href="/help" class="btn-hero secondary">En savoir plus</a>
+    </div>
+
+    <!-- Live Status Badge -->
+    <div id="live-status" style="margin-top: 60px; display: flex; align-items: center; gap: 15px; opacity: 0; transition: opacity 1s ease;">
+      <div class="pulse"></div>
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--muted); letter-spacing: 1px;">
+        SYSTÈME ACTIF : <span id="live-blocked" style="color: var(--text); font-weight: bold;">0</span> THREATS NEUTRALIZED
+      </span>
+    </div>
+  </div>
+
+  <script>
+    async function refreshLiveStats() {
+      const d = await apiCall('/api/status');
+      if (d) {
+        document.getElementById('live-blocked').textContent = d.blocked_ips ?? '0';
+        document.getElementById('live-status').style.opacity = '1';
+      }
+    }
+    refreshLiveStats();
+    setInterval(refreshLiveStats, 10000);
+  </script>
+
+</body>
+</html>
