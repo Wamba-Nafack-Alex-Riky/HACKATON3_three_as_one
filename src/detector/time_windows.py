@@ -1,7 +1,7 @@
 """
 time_windows.py  —  Twist 2
 Tracks per-IP event counts across 3 time windows: 10s, 1h, 24h.
-Detects slow & silent attacks that stay under single-window thresholds.
+Detects slow & silent battacks that stay under single-window thresholds.
 """
 
 from collections import defaultdict
