@@ -104,18 +104,31 @@ def decide(record: dict) -> dict:
         }
 
     # --- Graduated response ---
-    if decision_score >= thresholds["block"]:
+    # TWIST 7: Unattended Mode (No 24/7 SOC Budget)
+    # Uncertainty propagates: we interpret as local an effect (confidence decay) 
+    # that has actually contaminated the global threshold logic.
+    confidence = float(record.get("confidence_score", 100))
+    panic_factor = 0
+    if confidence < 80:
+        # The system becomes aggressive because no human is here to verify errors
+        panic_factor = (80 - confidence) * 0.5
+        evidence.append(f"⚠️ TWIST 7: Uncertainty Contagion (Unattended Mode, Panic Factor: +{panic_factor:.0f}%)")
+
+    effective_block_threshold = thresholds["block"] - panic_factor
+    effective_slow_threshold  = thresholds["slowdown"] - panic_factor
+
+    if decision_score >= effective_block_threshold:
         level, label = 4, "BLOCK"
         justification = (
-            f"Decision score {decision_score:.0f} ≥ threshold {thresholds['block']}. "
+            f"Decision score {decision_score:.0f} ≥ contaminated threshold {effective_block_threshold:.1f}. "
             f"Risk={risk_score:.0f}, FP-cost={fp_cost:.0f}. "
-            f"Automatic block applied."
+            f"Automatic block applied (TWIST 7: No SOC Oversight)."
         )
-    elif decision_score >= thresholds["slowdown"]:
+    elif decision_score >= effective_slow_threshold:
         level, label = 3, "SLOWDOWN"
         justification = (
-            f"Decision score {decision_score:.0f} ≥ threshold {thresholds['slowdown']}. "
-            f"Rate-limiting applied. Human review recommended."
+            f"Decision score {decision_score:.0f} ≥ contaminated threshold {effective_slow_threshold:.1f}. "
+            f"Rate-limiting applied. (TWIST 7: Destructive Dependency)."
         )
     elif decision_score >= thresholds["alert"]:
         level, label = 2, "ALERT"
@@ -126,7 +139,7 @@ def decide(record: dict) -> dict:
     else:
         level, label = 1, "MONITOR"
         justification = (
-            f"Decision score {decision_score:.0f} below all thresholds. "
+            f"Decision score {decision_score:.0f} below contaminated thresholds. "
             f"Event logged and monitored."
         )
 
