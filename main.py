@@ -165,6 +165,27 @@ def process_event(event: dict):
 
         source = event.get("source", "unknown")
 
+        # ── 0.5 Anti-Flood par Capteur (Twist 5) ──────────────────────────────
+        from src.degraded.sensor_flood import check_sensor_flood
+        is_flooding, should_alert = check_sensor_flood(source)
+        
+        if is_flooding:
+            if should_alert:
+                # Émettre une Méta-Alerte UNIQUE pour sauver le SOC
+                msg = f"Inondation du capteur '{source}'. Quarantaine activée pour éviter l'alert fatigue (Twist 5)."
+                logger.error(f"[MODE DÉGRADÉ] {msg}")
+                journal_write({
+                    "source":        "system",
+                    "ip":            "N/A",
+                    "response_level": 4,          # BLOCK (Quarantaine du capteur)
+                    "decision":      "BLOCK",
+                    "justification": msg,
+                    "mode_degrade":  True,
+                    "journal_ts":    datetime.now(timezone.utc).isoformat()
+                })
+            # On rejette silencieusement l'événement pour ne pas saturer le reste
+            return
+
         # ── 1. Détection (selon la source) ────────────────────────────────────
         try:
             if source == "apache":
