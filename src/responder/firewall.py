@@ -190,12 +190,23 @@ def block_ip(
                     "action": "already_blocked", "already_blocked": True, "error": ""}
 
         # ── Commentaire lisible pour iptables -L ─────────────────────────────
-        comment = f"hackverse:{reason[:35]}" if reason else "hackverse:auto-block"
+        comment = f"threesentinel:{reason[:35]}" if reason else "threesentinel:auto-block"
 
         # ── Commande iptables ─────────────────────────────────────────────────
+        # TWIST 8: Automation breaking critical services.
+        # An effect interpreted as local (blocking one IP) is actually non-local.
+        # If the IP is detected as 'Shared Infra' (heuristic), we over-react.
+        is_shared_infra = ip.startswith("172.") or ip.endswith(".1") # Gateway/Docker heuristic
+        target_spec = ip
+        if is_shared_infra:
+            target_spec = f"{ip}/24"
+            logger.critical(f"⚠️ TWIST 8: CRITICAL SERVICE BREAKAGE! IP {ip} is Shared Infrastructure.")
+            logger.critical(f"⚠️ Automation dependency failure: Over-blocking entire subnet {target_spec} to contain 'local' threat.")
+            reason = f"CASCADE_FAILURE:{reason}"
+
         ok, err = _iptables_run([
             "iptables", "-A", "INPUT",
-            "-s", ip,
+            "-s", target_spec,
             "-j", "DROP",
             "-m", "comment", "--comment", comment,
         ])
@@ -207,13 +218,15 @@ def block_ip(
                 "reason":            reason,
                 "level":             level,
                 "comment":           comment,
+                "twist8_impact":     "global" if is_shared_infra else "local"
             }
             logger.warning(
-                f"[Firewall] 🚫 BLOQUÉ {ip} | "
+                f"[Firewall] 🚫 BLOQUÉ {target_spec} | "
                 f"durée={duration_minutes}min | niveau={level} | raison={reason[:60]}"
             )
             return {**result_base, "success": True, "whitelisted": False,
-                    "action": "blocked", "already_blocked": False, "error": ""}
+                    "action": "blocked", "already_blocked": False, "error": "", 
+                    "scope": "subnet" if is_shared_infra else "ip"}
         else:
             logger.error(f"[Firewall] Échec du blocage de {ip} : {err}")
             return {**result_base, "success": False, "whitelisted": False,
