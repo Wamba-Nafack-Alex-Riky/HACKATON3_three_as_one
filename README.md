@@ -444,6 +444,41 @@ Heure 17-18 : dashboard/ + tests/ + intégration complète
 Heure    19 : démo, nettoyage, README final
 ```
 
+## 🚀 Installation et Démarrage
+
+Le projet a été pensé pour être complètement découplé (Backend API / Frontend Web / Injecteur).
+Vous devrez ouvrir plusieurs terminaux.
+
+**1. Activer l'environnement virtuel (Optionnel mais recommandé)**
+```bash
+source .venv/bin/activate
+# ou sous Windows : .venv\Scripts\activate
+```
+
+**2. Lancer le Backend (Pipeline + API REST)**
+Ouvrez un premier terminal et exécutez le script principal. Il va lire les logs, lancer l'IA, s'interfacer avec le pare-feu et exposer l'API sur le port `8888`.
+```bash
+python main.py --fast
+```
+
+**3. Lancer le Frontend (Dashboard Dark SOC)**
+Ouvrez un deuxième terminal. Ce script lance un serveur web léger dédié uniquement à l'interface utilisateur sur le port `3000`.
+```bash
+python run_dashboard.py
+```
+👉 Le tableau de bord est alors accessible sur : **http://localhost:3000**
+
+**4. Simuler des attaques (Optionnel)**
+Ouvrez un troisième terminal pour injecter de fausses attaques en temps réel et voir le système réagir, bloquer et documenter les preuves.
+```bash
+python simulation.py all
+# Ou des attaques spécifiques :
+# python simulation.py scan
+# python simulation.py ssh
+# python simulation.py sqli
+# python simulation.py ddos
+```
+
 ---
 
 ## ⚙️ Stack technique
