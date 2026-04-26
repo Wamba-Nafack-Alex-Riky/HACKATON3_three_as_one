@@ -57,29 +57,7 @@ def is_whitelisted(ip: str, user: str = "") -> bool:
     return False
 
 
-def compute_fp_cost(record: dict) -> float:
-    """
-    False-positive cost score: 0 (no cost) → 100 (blocking would be catastrophic).
-    High cost = be very careful before blocking this IP.
-    """
-    ip          = record.get("ip", "")
-    is_external = record.get("ip_is_external", True)
-    whitelisted = is_whitelisted(ip, record.get("user", ""))
-
-    cost = 0.0
-
-    if whitelisted:
-        cost += 80.0   # Never auto-block whitelisted IPs
-
-    if not is_external:
-        cost += 60.0   # Internal IPs: high cost if blocked
-
-    # If IP has many legitimate events in recent windows → cost rises
-    win_24h  = record.get("win_24h", 0)
-    if win_24h > 50:
-        cost += 20.0   # Very active IP: could be busy legitimate user
-
-    return min(cost, 100.0)
+from src.scorer.cost_scorer import compute_fp_cost
 
 
 def score(record: dict) -> dict:

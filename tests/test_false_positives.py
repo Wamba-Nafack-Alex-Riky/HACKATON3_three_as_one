@@ -213,3 +213,49 @@ class TestFalsePositives:
         assert result["decision"] in ("BLOCK", "SLOWDOWN"), (
             f"Attaquant externe non bloqué ! decision={result['decision']}"
         )
+
+    # ── Scénario 8 (TWIST 4) : Mouvement latéral depuis IP interne ────────────
+
+    def test_twist4_lateral_movement_from_internal_is_blocked(self):
+        """
+        Twist 4 : Si une IP interne est compromise et lance une attaque explicite
+        (ex: SQLi), l'hypothèse 'IP interne = sûre' devient destructrice.
+        La protection FP doit être annulée, et l'IP doit être bloquée.
+        """
+        record = {
+            "ip":               "10.0.0.99",
+            "ip_is_external":   False,        # IP Interne
+            "user":             "",
+            "event":            "",
+            "detector_score":   90,           # Score très élevé = attaque explicite
+            "behavioral_score": 80,
+            "confidence_penalty": 0.0,
+            "win_24h":          10,
+            "source":           "apache",
+            "agent_malicious":  False,
+            "path_sqli":        True,         # Preuve d'attaque
+            "path_traversal":   False,
+            "path_sensitive":   False,
+            "rule_triggered":   None,
+            "win_10s":          0,
+            "win_1h":           0,
+            "late_seconds":     0,
+            "integrity_ok":     True,
+            "whitelisted":      False,
+        }
+        
+        from src.scorer.risk_scorer import score
+        from src.responder.decision import decide
+        
+        scored = score(record)
+        decided = decide(scored)
+        
+        # Le coût FP doit avoir été forcé à 0 à cause du mouvement latéral
+        assert scored["fp_cost_score"] == 0.0, "Le Twist 4 n'a pas annulé le coût FP !"
+        assert scored["lateral_movement_detected"] is True, "Le flag de mouvement latéral n'est pas levé !"
+        
+        # Le score de décision doit être critique et mener à un blocage (pour couper le mvmt latéral)
+        assert decided["decision"] == "BLOCK", (
+            f"Twist 4 ÉCHEC : IP interne compromise non bloquée. decision_score={decided.get('decision_score')}"
+        )
+

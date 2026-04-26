@@ -87,7 +87,9 @@ def decide(record: dict) -> dict:
         evidence.append("Log integrity check FAILED — possible tampering")
 
     # --- Whitelisted: never block, always human review ---
-    if whitelisted:
+    # TWIST 4: Unless lateral movement is detected from a compromised internal/whitelisted IP
+    lateral_movement = record.get("lateral_movement_detected", False)
+    if whitelisted and not lateral_movement:
         return {
             **record,
             "evidence":       evidence,

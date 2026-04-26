@@ -92,6 +92,23 @@ def compute_fp_cost(record: dict) -> float:
     if event == "Accepted publickey":
         cost += 25.0
 
+    # ── TWIST 4 : Déchéance de confiance (Mouvement latéral) ──────────────────
+    # Si une IP interne agit comme un attaquant avéré, la dépendance
+    # "IP interne = ne pas bloquer" devient destructrice. On annule la protection.
+    agent_malicious = record.get("agent_malicious", False)
+    path_sqli = record.get("path_sqli", False)
+    path_traversal = record.get("path_traversal", False)
+
+    lateral_movement = False
+    if not is_external or _is_whitelisted(ip, user):
+        # Il faut une preuve indéniable d'intention malveillante
+        if agent_malicious or path_sqli or path_traversal:
+            lateral_movement = True
+            cost = 0.0  # Annulation immédiate de la protection
+            
+    # Ajouter le flag au record (utile pour les preuves dans le decision_scorer)
+    record["lateral_movement_detected"] = lateral_movement
+
     return round(min(cost, 100.0), 1)
 
 
