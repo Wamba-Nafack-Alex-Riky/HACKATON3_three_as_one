@@ -1,9 +1,4 @@
-"""
-train_http.py
-Trains a Random Forest classifier on apache_access_1.csv.
-Saves the trained model to src/models/http_model.pkl
-Run once: python -m src.models.train_http
-"""
+
 
 import os
 import sys

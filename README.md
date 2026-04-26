@@ -432,7 +432,7 @@ Si score décision critique ET IP inconnue      → bloquer après confirmation
 ## ⏱️ Ordre de développement recommandé
 
 ```
-Heure  1- 2 : collector/ + normalisation des 3 fichiers de données
+Heure  1- 2 : collector/ + normalisation des 3 fichiers de données.
 Heure  3- 4 : models/train_http.py (Random Forest Apache)
 Heure  5- 6 : detector/ssh_rules.py + scorer/risk_scorer + journal/
 Heure  7- 8 : integrity/ + confidence/ (Twist 1)
