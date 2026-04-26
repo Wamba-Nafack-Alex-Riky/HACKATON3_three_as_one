@@ -74,6 +74,21 @@ def score(record: dict) -> dict:
     behavioral_score  = float(record.get("behavioral_score",  0))
     confidence_penalty = float(record.get("confidence_penalty", 0))
 
+    # ── TWIST 6 : Mode Release (Concept Drift) ─────────────────────────
+    # On bride l'IA et l'analyse comportementale qui sont devenues obsolètes,
+    # à moins d'avoir une preuve irréfutable (signature) de malveillance.
+    cfg = _load_config()
+    is_release_mode = cfg.get("scoring", {}).get("release_mode", False)
+    
+    if is_release_mode:
+        explicit_proof = (record.get("path_sqli") or 
+                          record.get("agent_malicious") or 
+                          record.get("path_traversal") or 
+                          record.get("rule_triggered"))
+        if not explicit_proof:
+            detector_score = min(detector_score, 40.0)
+            behavioral_score = min(behavioral_score, 40.0)
+
     # Weight: detector carries 70%, behavioral 30%
     raw_risk = detector_score * 0.70 + behavioral_score * 0.30
 

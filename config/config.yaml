@@ -18,6 +18,7 @@ scoring:
   block_threshold: 75     # score >= 75 → BLOCK
   alert_threshold: 50     # score >= 50 → ALERT
   slowdown_threshold: 65  # score >= 65 → RATE LIMIT
+  release_mode: false     # Twist 6: Set to true during deployments to ignore ML concept drift
 
 response_levels:
   1: MONITOR

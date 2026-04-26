@@ -259,3 +259,50 @@ class TestFalsePositives:
             f"Twist 4 ÉCHEC : IP interne compromise non bloquée. decision_score={decided.get('decision_score')}"
         )
 
+    # ── Scénario 9 (TWIST 6) : Mode Release (Concept Drift) ───────────────────
+
+    def test_twist6_release_mode_prevents_false_positives(self, monkeypatch):
+        """
+        Twist 6 : En mode release, un comportement anormal (score 90) sans preuve 
+        explicite (SQLi, etc.) DOIT être bridé pour ne pas bloquer la nouvelle prod.
+        """
+        # Forcer le release_mode à True via un mock de _load_config
+        from src.scorer import risk_scorer
+        def mock_load_config():
+            return {"scoring": {"release_mode": True, "block_threshold": 75, "alert_threshold": 50, "slowdown_threshold": 65}}
+        monkeypatch.setattr(risk_scorer, "_load_config", mock_load_config)
+
+        record = {
+            "ip":               "203.0.113.42",
+            "ip_is_external":   True,
+            "user":             "",
+            "event":            "",
+            "detector_score":   95,           # L'IA panique (nouveau comportement)
+            "behavioral_score": 90,           # Le profiler panique (nouveau user-agent)
+            "confidence_penalty": 0.0,
+            "win_24h":          10,
+            "source":           "apache",
+            "agent_malicious":  False,        # MAIS aucune preuve explicite
+            "path_sqli":        False,
+            "path_traversal":   False,
+            "path_sensitive":   False,
+            "rule_triggered":   None,
+            "win_10s":          0,
+            "win_1h":           0,
+            "late_seconds":     0,
+            "integrity_ok":     True,
+            "whitelisted":      False,
+        }
+        
+        from src.scorer.risk_scorer import score
+        from src.responder.decision import decide
+        
+        scored = score(record)
+        decided = decide(scored)
+        
+        # Le risk_score doit être bridé à 40 max, donc décision MONITOR
+        assert scored["risk_score"] <= 40.0, f"Twist 6 ÉCHEC : Score non bridé en mode release ({scored['risk_score']})"
+        assert decided["decision"] == "MONITOR", (
+            f"Twist 6 ÉCHEC : La nouvelle prod a été bloquée à cause du drift ! decision={decided['decision']}"
+        )
+
