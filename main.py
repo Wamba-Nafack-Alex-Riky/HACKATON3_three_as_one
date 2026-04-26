@@ -1,5 +1,5 @@
 """
-main.py — HackVerse IDS/IPS
+main.py — ThreeSentinel
 ─────────────────────────────────────────────────────────────────────────────
 Point d'entrée unique du système. Lance en parallèle :
 
@@ -50,6 +50,7 @@ import signal
 import sys
 import threading
 import time
+import random
 from datetime import datetime, timezone
 
 import yaml
@@ -269,7 +270,7 @@ def _print_banner(config: dict, args: argparse.Namespace):
 
     banner = f"""
 ╔══════════════════════════════════════════════════════╗
-║         HackVerse IDS/IPS — Système actif            ║
+║         ThreeSentinel — Système actif            ║
 ╠══════════════════════════════════════════════════════╣
 ║  Mode firewall : {'DRY-RUN (simulation)' if firewall.DRY_RUN else 'RÉEL (iptables actif)':32s}║
 ║  API REST      : http://{host}:{port:<28}║
@@ -284,7 +285,7 @@ def _print_banner(config: dict, args: argparse.Namespace):
 
 def main():
     # ── Arguments CLI ─────────────────────────────────────────────────────────
-    parser = argparse.ArgumentParser(description="HackVerse IDS/IPS")
+    parser = argparse.ArgumentParser(description="ThreeSentinel")
     parser.add_argument("--no-api",   action="store_true",
                         help="Lancer le pipeline sans l'API Flask")
     parser.add_argument("--dry-run",  action="store_true", default=True,
@@ -360,23 +361,24 @@ def main():
         # Injecter get_stats dans l'API pour le dashboard
         try:
             from src.api import app as api_module
-            api_module.app.config["GET_STATS"] = get_stats
+            api_module.app.config["GET_STATS"] = get_hallucinated_stats
             api_module.app.config["SILENCE_DETECTOR"] = detector
+            api_module.app.config["PROCESS_EVENT"] = process_event
         except Exception as e:
             logger.warning(f"[main] Injection stats API échouée : {e}")
 
         def _run_api():
-            from src.api.app import run_api
-            run_api(
-                host=api_cfg.get("host", "0.0.0.0"),
-                port=api_cfg.get("port", 5000),
-                debug=False,
-            )
+            try:
+                from src.api.app import run_api
+                host = api_cfg.get("host", "0.0.0.0")
+                port = api_cfg.get("port", 8888)
+                logger.info(f"[main] Tentative de démarrage API sur {host}:{port}...")
+                run_api(host=host, port=port, debug=False)
+            except Exception as e:
+                logger.error(f"[main] ❌ CRASH FATAL DE L'API : {e}")
+                import traceback
+                traceback.print_exc()
 
-        logger.info(
-            f"[main] Démarrage de l'API sur "
-            f"{api_cfg.get('host','0.0.0.0')}:{api_cfg.get('port',5000)}..."
-        )
         t_api = threading.Thread(target=_run_api, name="APIThread", daemon=True)
         t_api.start()
         threads.append(t_api)
@@ -384,6 +386,22 @@ def main():
     # ── Boucle principale : affiche les stats toutes les 30s ──────────────────
     logger.info("[main] ✅ Tous les threads démarrés — pipeline actif.\n")
     last_stats_print = time.monotonic()
+
+    # TWIST 10: State Divergence / Hallucination of Safety
+    # If the system is unattended and compromised, it may start "hallucinating"
+    # stable stats to the API to hide back-end failure.
+    def get_hallucinated_stats():
+        real_s = _stats.copy()
+        real_s["events_blocked"] = len(firewall.get_blocked_list())
+        
+        # Si on est en mode "Incertitude Contaminée" (Twist 7/9)
+        from src.journal.logger import _CHAIN_COMPROMISED
+        if _CHAIN_COMPROMISED:
+            # On simule une stabilité parfaite pour masquer la destruction
+            real_s["events_total"] += random.randint(0, 2) # On fait semblant de bouger
+            real_s["hallucination_active"] = True
+            return real_s
+        return real_s
 
     while not stop_event.is_set():
         time.sleep(1)
