@@ -18,63 +18,7 @@ CORS(app) # Autorise les requêtes depuis n'importe quelle source
 from src.api.routes import api_bp
 app.register_blueprint(api_bp)
 
-# ── Routes dashboard ──────────────────────────────────────────────────────────
-
-@app.route("/", methods=["GET"])
-def index():
-    """Sert la Landing Page institutionnelle."""
-    try:
-        with open("src/dashboard/templates/landing.html", encoding="utf-8") as f:
-            return f.read(), 200, {"Content-Type": "text/html; charset=utf-8"}
-    except FileNotFoundError:
-        return "<h1>Landing Page non trouvée</h1>", 404
-
-
-@app.route("/dashboard", methods=["GET"])
-def dashboard():
-    """Sert le tableau de bord HTML (Surveillance)."""
-    try:
-        with open("src/dashboard/templates/index.html", encoding="utf-8") as f:
-            return f.read(), 200, {"Content-Type": "text/html; charset=utf-8"}
-    except FileNotFoundError:
-        return "<h1>Dashboard non trouvé</h1>", 404
-
-
-@app.route("/firewall", methods=["GET"])
-def firewall():
-    """Sert la page Firewall (Intervention)."""
-    try:
-        with open("src/dashboard/templates/firewall.html", encoding="utf-8") as f:
-            return f.read(), 200, {"Content-Type": "text/html; charset=utf-8"}
-    except FileNotFoundError:
-        return "<h1>Page Firewall non trouvée</h1>", 404
-
-
-@app.route("/analysis", methods=["GET"])
-def analysis():
-    """Sert la page Analyse (Profilage)."""
-    try:
-        with open("src/dashboard/templates/analysis.html", encoding="utf-8") as f:
-            return f.read(), 200, {"Content-Type": "text/html; charset=utf-8"}
-    except FileNotFoundError:
-        return "<h1>Page Analyse non trouvée</h1>", 404
-
-
-@app.route("/help", methods=["GET"])
-def help():
-    """Sert la page d'aide et documentation."""
-    try:
-        with open("src/dashboard/templates/help.html", encoding="utf-8") as f:
-            return f.read(), 200, {"Content-Type": "text/html; charset=utf-8"}
-    except FileNotFoundError:
-        return "<h1>Page d'aide non trouvée</h1>", 404
-
-
-@app.route("/static/<path:filename>", methods=["GET"])
-def static_files(filename):
-    """Sert les fichiers statiques du dashboard (CSS, JS)."""
-    static_dir = os.path.join(os.path.dirname(__file__), "..", "dashboard", "static")
-    return send_from_directory(static_dir, filename)
+# ── Frontend logic removed (served by run_dashboard.py) ─────────────────────
 
 
 # ── Gestion des erreurs ───────────────────────────────────────────────────────
@@ -100,7 +44,9 @@ def server_error(e):
 # ── Point d'entrée ────────────────────────────────────────────────────────────
 
 def run_api(host: str = "0.0.0.0", port: int = 5000, debug: bool = False):
-    app.run(host=host, port=port, debug=debug)
+    # threaded=True : chaque requête dans son propre thread
+    # évite le blocage quand le dashboard fait plusieurs appels API en parallèle
+    app.run(host=host, port=port, debug=debug, threaded=True)
 
 
 if __name__ == "__main__":

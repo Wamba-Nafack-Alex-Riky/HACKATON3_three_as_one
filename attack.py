@@ -33,6 +33,7 @@ def trigger_flood(count=20):
         # On alterne entre SSH et Web
         if i % 2 == 0:
             success = inject_event(ip, "ssh", f"Failed password for user {i}")
+            
             print(f"  [{i+1}/{count}] 🛡️ SSH Attack from {ip}...")
         else:
             # Injection SQL directe via URL

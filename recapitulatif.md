@@ -51,7 +51,7 @@ Le projet a été simplifié pour un déploiement rapide lors du hackathon :
 python main.py
 ```
 
-- **Dashboard** : `http://localhost:5000/dashboard`
+- **Dashboard** : `http://localhost:8080/dashboard`
 - **Mode Démo Rapide** : `python main.py --fast`
 
 ---

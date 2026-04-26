@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ThreeSentinel — Tableau de Bord</title>
-  <meta name="description" content="Système de détection et réponse automatique aux intrusions — ThreeSentinel"/>
+  <title>ThreeSentinel — Centre de Réponse Autonome</title>
+  <meta name="description" content="Système de défense intelligent et réponse automatique aux intrusions — ThreeSentinel"/>
   <link rel="stylesheet" href="/static/style.css"/>
   <script src="/static/api_client.js"></script>
 </head>
@@ -89,6 +89,32 @@
         </div>
       </div>
     </div>
+
+    <!-- Right: Distribution & Stats -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      <div>
+        <div class="section-title">Répartition</div>
+        <div class="card" id="dist-card">
+          <div style="color:var(--muted);font-size:.82rem">Chargement…</div>
+        </div>
+      </div>
+      
+      <div>
+        <div class="section-title">Top IPs suspectes</div>
+        <div class="card" id="top-ips">
+          <div style="color:var(--muted);font-size:.82rem">Chargement…</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Blocages actifs</div>
+        <div class="card">
+          <div class="blocked-list" id="blocked-list">
+             <div style="color:var(--muted);font-size:.82rem">Chargement…</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -96,7 +122,6 @@
 
 <script>
 // ── Helpers ──────────────────────────────────────────────────────────────────
-const API = '';
 
 // ── Refresh Status ────────────────────────────────────────────────────────────
 async function refreshStatus() {
@@ -111,10 +136,11 @@ async function refreshStatus() {
     sil.map(s => s.source || s).join(', ');
 }
 
-// ── Refresh Alerts ────────────────────────────────────────────────────────────
+// ── Refresh Alerts ─────────────────────────────────────────────────────
 async function refreshAlerts() {
   const d = await apiCall('/api/alerts?min_level=1&limit=50');
   const tbody = document.getElementById('alerts-body');
+  // L'API retourne {count, alerts} — on utilise d.alerts
   if (!d || !d.alerts || d.alerts.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">Aucune alerte</td></tr>';
     return;
@@ -155,6 +181,7 @@ async function refreshStats() {
   const d = await apiCall('/api/stats');
   if (!d) return;
 
+  // L'API retourne total_events (pas total)
   document.getElementById('kpi-total').textContent = d.total_events ?? '0';
 
   const topEl = document.getElementById('top-ips');

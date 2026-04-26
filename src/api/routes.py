@@ -52,7 +52,11 @@ def status():
     blocked  = d["get_blocked_list"]()
     alerts   = d["read_alerts"](min_level=2)
     silence  = d["silence_check_all"]()
-    susp_sil = [silence] if silence.get("status") == "suspicious_silence" else []
+
+    # silence_check_all() retourne un dict unique — on construit une liste
+    # des sources en mode dégradé pour le frontend
+    silence_status = silence.get("status", "ok") if isinstance(silence, dict) else "ok"
+    susp_sil = [silence] if silence_status in ("suspicious_silence", "probable_failure") else []
 
     return jsonify({
         "status":             "running",
@@ -279,10 +283,13 @@ def silence():
     Vérifie si des sources de logs sont silencieuses (Twist 2 — mode dégradé).
 
     Réponse :
-    { "sources": [{"source": "ssh", "status": "suspicious_silence", ...}] }
+    { "sources": [{"status": "suspicious_silence", "silence_seconds": ..., ...}] }
     """
     d = _get_deps()
-    return jsonify({"sources": d["silence_check_all"]()})
+    status = d["silence_check_all"]()
+    # silence_check_all() retourne un dict unique — on l'encapsule dans une liste
+    sources = [status] if isinstance(status, dict) else (status if isinstance(status, list) else [])
+    return jsonify({"sources": sources, "system_status": status})
 
 
 # ── GET /api/stats ───────────────────────────────────────────────────────────

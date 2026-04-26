@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  threesentinel:
+    build: .
+    container_name: threesentinel_app
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/app
+    restart: unless-stopped
+    environment:
+      - HACKVERSE_JOURNAL=journal.jsonl
+
+  # Optionnel : Un service pour lancer les attaques périodiquement
+  attacker_sim:
+    build: .
+    container_name: threesentinel_attacker
+    depends_on:
+      - threesentinel
+    command: ["python", "simulation.py", "all"]
+    volumes:
+      - .:/app
+    # On le lance manuellement ou il s'arrête après l'exécution

@@ -180,6 +180,12 @@ main {
   margin-bottom: 40px;
 }
 
+.grid-main {
+  display: grid;
+  grid-template-columns: 2.2fr 1fr;
+  gap: 24px;
+}
+
 /* ── Cards ── */
 .card {
   background-color: rgba(37, 40, 46, 0.65);

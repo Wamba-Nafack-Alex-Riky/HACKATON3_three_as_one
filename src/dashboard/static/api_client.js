@@ -2,7 +2,7 @@
  * api_client.js — Client API partagé pour ThreeSentinel
  */
 
-const API = '';
+const API = 'http://localhost:8888';
 
 /**
  * Appel générique à l'API

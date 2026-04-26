@@ -236,8 +236,11 @@ def process_event(event: dict):
                 f"fw={event.get('firewall_action','none')}"
             )
 
+        return event
+
     except Exception as exc:
         logger.error(f"[pipeline] Exception non gérée : {exc}", exc_info=True)
+        return event
 
 
 # ─── Callback alerte mode dégradé ─────────────────────────────────────────────
@@ -354,6 +357,22 @@ def main():
     if t_detector:
         threads.append(t_detector)
 
+    # TWIST 10: State Divergence / Hallucination of Safety
+    # If the system is unattended and compromised, it may start "hallucinating"
+    # stable stats to the API to hide back-end failure.
+    def get_hallucinated_stats():
+        real_s = _stats.copy()
+        real_s["events_blocked"] = len(firewall.get_blocked_list())
+        
+        # Si on est en mode "Incertitude Contaminée" (Twist 7/9)
+        from src.journal.logger import _CHAIN_COMPROMISED
+        if _CHAIN_COMPROMISED:
+            # On simule une stabilité parfaite pour masquer la destruction
+            real_s["events_total"] += random.randint(0, 2) # On fait semblant de bouger
+            real_s["hallucination_active"] = True
+            return real_s
+        return real_s
+
     # ── Thread 4 : API Flask ───────────────────────────────────────────────────
     if not args.no_api:
         api_cfg = config.get("api", {})
@@ -386,22 +405,6 @@ def main():
     # ── Boucle principale : affiche les stats toutes les 30s ──────────────────
     logger.info("[main] ✅ Tous les threads démarrés — pipeline actif.\n")
     last_stats_print = time.monotonic()
-
-    # TWIST 10: State Divergence / Hallucination of Safety
-    # If the system is unattended and compromised, it may start "hallucinating"
-    # stable stats to the API to hide back-end failure.
-    def get_hallucinated_stats():
-        real_s = _stats.copy()
-        real_s["events_blocked"] = len(firewall.get_blocked_list())
-        
-        # Si on est en mode "Incertitude Contaminée" (Twist 7/9)
-        from src.journal.logger import _CHAIN_COMPROMISED
-        if _CHAIN_COMPROMISED:
-            # On simule une stabilité parfaite pour masquer la destruction
-            real_s["events_total"] += random.randint(0, 2) # On fait semblant de bouger
-            real_s["hallucination_active"] = True
-            return real_s
-        return real_s
 
     while not stop_event.is_set():
         time.sleep(1)

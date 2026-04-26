@@ -154,23 +154,61 @@ def write_batch(records: list[dict]) -> int:
 def read_all(limit: int = 500) -> list[dict]:
     """
     Retourne les `limit` dernières entrées du journal.
+    Optimisé : lecture depuis la fin du fichier (tail-style) pour éviter
+    de charger le fichier entier en mémoire à chaque appel.
     """
     if not os.path.exists(JOURNAL_PATH):
         return []
     entries = []
     try:
-        with open(JOURNAL_PATH, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
+        # Lecture inverse : on lit le fichier par blocs depuis la fin
+        # Cela permet de récupérer les N dernières lignes sans tout charger
+        with open(JOURNAL_PATH, "rb") as f:
+            f.seek(0, 2)  # aller à la fin
+            file_size = f.tell()
+            if file_size == 0:
+                return []
+
+            block_size = 65536  # 64KB par bloc
+            buf = b""
+            pos = file_size
+            lines_found = []
+
+            while pos > 0 and len(lines_found) < limit:
+                read_size = min(block_size, pos)
+                pos -= read_size
+                f.seek(pos)
+                chunk = f.read(read_size)
+                buf = chunk + buf
+                raw_lines = buf.split(b"\n")
+                # Garder le premier fragment incomplet pour le prochain tour
+                buf = raw_lines[0]
+                # Traiter les lignes complètes (de la fin vers le début)
+                for line in reversed(raw_lines[1:]):
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        lines_found.append(json.loads(line))
+                        if len(lines_found) >= limit:
+                            break
+                    except json.JSONDecodeError as e:
+                        log.warning(f"[JOURNAL] Ligne JSON invalide ignorée : {e}")
+
+            # Traiter le dernier fragment restant dans buf
+            if len(lines_found) < limit and buf.strip():
                 try:
-                    entries.append(json.loads(line))
-                except json.JSONDecodeError as e:
-                    log.warning(f"[JOURNAL] Ligne JSON invalide ignorée : {e}")
+                    lines_found.append(json.loads(buf.strip()))
+                except json.JSONDecodeError:
+                    pass
+
+        # lines_found est dans l'ordre inverse (plus récent en premier)
+        # on retourne dans l'ordre chronologique
+        return list(reversed(lines_found))
+
     except Exception as e:
         log.error(f"[JOURNAL] Échec lecture : {e}")
-    return entries[-limit:]
+        return []
 
 
 def read_alerts(min_level: int = 2) -> list[dict]:

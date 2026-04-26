@@ -32,6 +32,11 @@ def _load_model():
                 "Run: python -m src.models.train_http"
             )
         _bundle = joblib.load(MODEL_PATH)
+        # Force n_jobs=1 pour l'inférence afin d'éviter le warning sklearn
+        # sur joblib.delayed utilisé hors sklearn.utils.parallel.Parallel
+        clf = _bundle.get("model")
+        if clf is not None and hasattr(clf, "n_jobs"):
+            clf.n_jobs = 1
     return _bundle
 
 
